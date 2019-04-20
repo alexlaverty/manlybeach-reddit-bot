@@ -10,6 +10,8 @@ import yaml
 import praw
 from random import randint
 
+# Websites to add :
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--local',  help='Pull html from local file', action='store_true')
 args = parser.parse_args()
@@ -83,9 +85,6 @@ def manlyaustralia():
         page = urllib.request.urlopen(remote_url)
         soup = BeautifulSoup(page, 'html.parser')
 
-    # Get Local
-    #soup = BeautifulSoup(open("index.html"), "html.parser")
-
     rows = []
 
     headlines = soup.find_all('div', {'class' : 'desc'})
@@ -95,12 +94,9 @@ def manlyaustralia():
     df = pd.DataFrame(columns=["timestamp","title", "url","posted"])
 
     for headline in headlines:
-        # row=[,headline.find('a')['href']]
-        # rows = row.append(row)
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        title=headline.find('a').contents[0]
+        title="{} :: {}".format(headline.find('a').contents[0],"Manly Australia")
         try:
-
             url = headline.find('a')['href']
             #print(title, url)
             df = df.append({
@@ -129,9 +125,6 @@ def sproutdaily():
         page = urllib.request.urlopen(remote_url)
         soup = BeautifulSoup(page, 'html.parser')
 
-    # Get Local
-    #soup = BeautifulSoup(open("index.html"), "html.parser")
-
     rows = []
 
     headlines = soup.find_all('div', {'class' : 'summary-title'})
@@ -142,9 +135,48 @@ def sproutdaily():
 
     for headline in headlines:
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        title=headline.find('a').contents[0]
+        title="{} :: {}".format(headline.find('a').contents[0], "Sprout Daily")
         try:
             url = "{}{}".format(remote_url, headline.find('a')['href'])
+            #print(title, url)
+            df = df.append({
+                 "timestamp": timestamp,
+                 "title": title,
+                 "url": url,
+                 "posted": "False",
+            }, ignore_index=True)
+        except TypeError:
+            pass
+
+    print(remote_url)
+    print_full(df)
+    print("==================================")
+
+    csv = csv.append(df, ignore_index=True)
+    csv.drop_duplicates(['url'],inplace=True)
+    csv.to_csv(csv_file, index=False)
+
+
+def pacificjules():
+    remote_url = 'https://pacificjules.typepad.com/'
+    if args.local:
+        soup = BeautifulSoup(open("index.html"), "html.parser")
+    else:
+        page = urllib.request.urlopen(remote_url)
+        soup = BeautifulSoup(page, 'html.parser')
+
+    rows = []
+
+    headlines = soup.find('div', {'class' : 'module-archives'})
+    lis = headlines.find_all('li', {'class' : 'module-list-item'})
+    csv = pd.read_csv(csv_file)
+
+    df = pd.DataFrame(columns=["timestamp","title", "url","posted"])
+    for li in lis:
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        title="{} :: {}".format(li.find('a').contents[0],"Bold and Beautiful")
+        try:
+            url = li.find('a')['href']
             #print(title, url)
             df = df.append({
                  "timestamp": timestamp,
@@ -175,9 +207,7 @@ def publish_to_reddit():
     user_agent    = cfg['reddit']['user_agent']
 
     csv = pd.read_csv(csv_file)
-    #csv_posts = csv['posted']=="False"
     print("Publishing to Subreddit : {}".format(sub_reddit))
-    #print_full(csv)
 
     print("==================================")
 
@@ -187,6 +217,7 @@ def publish_to_reddit():
                          client_secret=client_secret,
                          user_agent=user_agent
                          )
+
     for index, row in csv.iterrows():
         if row['posted'] == False:
             title=row['title']
@@ -211,6 +242,7 @@ def main():
     ninenews()
     manlyaustralia()
     sproutdaily()
+    pacificjules()
     publish_to_reddit()
 
 if __name__ == '__main__':
