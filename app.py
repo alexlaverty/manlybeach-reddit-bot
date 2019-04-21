@@ -224,7 +224,7 @@ def publish_to_reddit():
             url=row['url']
             print("Title : {}".format(title))
             print("URL : {}".format(url))
-            wait_for=randint(120, 180)
+            wait_for=randint(3600, 5400)
             try:
                 reddit.subreddit(sub_reddit).submit(title, url=url)
                 print("POSTED TO REDDIT!")
