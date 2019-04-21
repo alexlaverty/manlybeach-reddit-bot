@@ -230,10 +230,10 @@ def publish_to_reddit():
                 print("POSTED TO REDDIT!")
                 csv.at[index,'posted'] = "True"
                 csv.to_csv(csv_file, index=False)
-                print("Waiting for random ammount of seconds before posting : {}".format(str(wait_for)))
+                print("Waiting for random ammount of seconds before posting again : {}".format(str(wait_for)))
                 sleep(wait_for)
-            except TypeError:
-                print("FAILED TO POST")
+            except TypeError as error:
+                print(error)
                 pass
             print("----------------------------------")
 
