@@ -241,14 +241,21 @@ def pacificjules():
 
 
 def publish_to_reddit():
-    with open("config.yml", 'r') as ymlfile:
-        cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
-    username      = cfg['reddit']['username']
-    password      = cfg['reddit']['password']
-    sub_reddit    = cfg['reddit']['sub_reddit']
-    client_id     = cfg['reddit']['client_id']
-    client_secret = cfg['reddit']['client_secret']
-    user_agent    = cfg['reddit']['user_agent']
+    # with open("config.yml", 'r') as ymlfile:
+    #     cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
+    # username      = cfg['reddit']['username']
+    # password      = cfg['reddit']['password']
+    # sub_reddit    = cfg['reddit']['sub_reddit']
+    # client_id     = cfg['reddit']['client_id']
+    # client_secret = cfg['reddit']['client_secret']
+    # user_agent    = cfg['reddit']['user_agent']
+
+    username      = os.getenv('REDDIT_USERNAME')
+    password      = os.getenv('REDDIT_PASSWORD')
+    sub_reddit    = os.getenv('REDDIT_SUB_REDDIT')
+    client_id     = os.getenv('REDDIT_CLIENT_ID')
+    client_secret = os.getenv('REDDIT_CLIENT_SECRET')
+    user_agent    = os.getenv('REDDIT_USER_AGENT')
 
     csv = pd.read_csv(csv_file)
     print("Publishing to Subreddit : {}".format(sub_reddit))
