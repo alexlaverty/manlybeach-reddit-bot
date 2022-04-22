@@ -116,6 +116,50 @@ def manlyaustralia():
     csv.drop_duplicates(['url'],inplace=True)
     csv.to_csv(csv_file, index=False)
 
+
+def manlyobserver():
+    if args.local:
+        soup = BeautifulSoup(open("index.html"), "html.parser")
+    else:
+        # Get Remote
+        remote_url = 'https://manlyobserver.com.au/category/latest-news/'
+        page = urllib.request.urlopen(remote_url)
+        soup = BeautifulSoup(page, 'html.parser')
+
+    rows = []
+
+    headlines = soup.find_all('div', {'class' : 'td-module-thumb'})
+    #print(headlines)
+
+    csv = pd.read_csv(csv_file)
+
+    df = pd.DataFrame(columns=["timestamp","title", "url","posted"])
+
+    for headline in headlines:
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        url_text = headline.find('a')['title']
+        title="{} :: {}".format(url_text,"Manly Observer")
+        try:
+            url = headline.find('a')['href']
+            #print(title, url)
+            df = df.append({
+                 "timestamp": timestamp,
+                 "title": title,
+                 "url": url,
+                 "posted": "False",
+            }, ignore_index=True)
+        except TypeError:
+            pass
+
+    print(remote_url)
+    print_full(df)
+    print("==================================")
+
+    csv = csv.append(df, ignore_index=True)
+    csv.drop_duplicates(['url'],inplace=True)
+    csv.to_csv(csv_file, index=False)
+
+
 def sproutdaily():
     if args.local:
         soup = BeautifulSoup(open("index.html"), "html.parser")
@@ -243,6 +287,7 @@ def main():
     manlyaustralia()
     sproutdaily()
     pacificjules()
+    manlyobserver()
     publish_to_reddit()
 
 if __name__ == '__main__':
