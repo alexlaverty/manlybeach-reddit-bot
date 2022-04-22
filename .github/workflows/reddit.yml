@@ -1,5 +1,15 @@
-name: Gramps
-on: [push]
+# Give your gitflow action a name
+name: Manly Beach Reddit
+
+# Set a schedule to run, note it's in UTC time, so do the time conversion for your location
+on:
+  schedule:
+    - cron: '0 */12 * * *' # runs every 12 hours
+
+# Also run the build if I push anything into the surf folder on the main branch
+  push:
+    branches:
+      - master
 jobs:
   build:
     runs-on: ubuntu-latest
