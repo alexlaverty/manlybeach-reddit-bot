@@ -6,7 +6,7 @@ on:
   schedule:
     - cron: '0 */12 * * *' # runs every 12 hours
 
-# Also run the build if I push anything into the surf folder on the main branch
+# Also run the build if I push anything into the master branch
   push:
     branches:
       - master
@@ -38,15 +38,22 @@ jobs:
           REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
           REDDIT_USER_AGENT: ${{ secrets.REDDIT_USER_AGENT }}
 
+      # This step will evaluate the repo status and report the change
+      - name: Check if there are changes
+        id: changes
+        uses: UnicornGlobal/has-changes-action@v1.0.11
+
       - name: commit
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add -A
           git commit -m "ManlyBeach Scheduled Update" -a
+        if: steps.changes.outputs.changed == 1
           
       - name: push
         uses: ad-m/github-push-action@v0.6.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: master
+        if: steps.changes.outputs.changed == 1
