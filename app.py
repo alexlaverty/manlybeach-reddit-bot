@@ -1,5 +1,6 @@
 import requests
 import urllib.request
+
 import pandas as pd
 import os
 from time import sleep
@@ -17,6 +18,10 @@ parser.add_argument('--local',  help='Pull html from local file', action='store_
 args = parser.parse_args()
 
 csv_file = "data.csv"
+
+pd.set_option('display.max_columns', None)
+pd.set_option('display.expand_frame_repr', False)
+pd.set_option('max_colwidth', -1)
 
 # def print_full(x):
 #     pd.set_option('display.max_rows', len(x))
@@ -130,6 +135,56 @@ def manlyobserver():
 
     headlines = soup.find_all('div', {'class' : 'td-module-thumb'})
     #print(headlines)
+
+    csv = pd.read_csv(csv_file)
+
+    df = pd.DataFrame(columns=["timestamp","title", "url","posted"])
+
+    for headline in headlines:
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        url_text = headline.find('a')['title']
+        title="{} :: {}".format(url_text,"Manly Observer")
+        try:
+            url = headline.find('a')['href']
+            #print(title, url)
+            df = df.append({
+                 "timestamp": timestamp,
+                 "title": title,
+                 "url": url,
+                 "posted": "False",
+            }, ignore_index=True)
+        except TypeError:
+            pass
+
+    print(remote_url)
+    print(df)
+    print("==================================")
+
+    csv = csv.append(df, ignore_index=True)
+    csv.drop_duplicates(['url'],inplace=True)
+    csv.to_csv(csv_file, index=False)
+
+
+def northernbeachesadvocate():
+    if args.local:
+        soup = BeautifulSoup(open("index.html"), "html.parser")
+    else:
+        # Get Remote
+        remote_url = 'https://www.northernbeachesadvocate.com.au/?s=manly'
+        #hdr = {'User-Agent':'Mozilla/5.0'}
+        #page = urllib.request.urlopen(remote_url,headers=hdr)
+        opener = urllib.request.build_opener()
+        opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+        urllib.request.install_opener(opener)
+        page = urllib.request.urlopen(remote_url)
+
+        soup = BeautifulSoup(page, 'html.parser')
+
+    rows = []
+
+    #headlines = soup.find_all('article', {'class' : 'td-module-thumb'})
+    headlines = soup.find_all('article')
+    print(headlines)
 
     csv = pd.read_csv(csv_file)
 
@@ -295,6 +350,7 @@ def main():
     sproutdaily()
     pacificjules()
     manlyobserver()
+    northernbeachesadvocate()
     publish_to_reddit()
 
 if __name__ == '__main__':
