@@ -166,13 +166,11 @@ def manlyobserver():
 
 
 def northernbeachesadvocate():
+    url_name = "Northern Beaches Advocate"
+    remote_url = 'https://www.northernbeachesadvocate.com.au/?s=manly'
     if args.local:
         soup = BeautifulSoup(open("index.html"), "html.parser")
     else:
-        # Get Remote
-        remote_url = 'https://www.northernbeachesadvocate.com.au/?s=manly'
-        #hdr = {'User-Agent':'Mozilla/5.0'}
-        #page = urllib.request.urlopen(remote_url,headers=hdr)
         opener = urllib.request.build_opener()
         opener.addheaders = [('User-agent', 'Mozilla/5.0')]
         urllib.request.install_opener(opener)
@@ -182,7 +180,6 @@ def northernbeachesadvocate():
 
     rows = []
 
-    #headlines = soup.find_all('article', {'class' : 'td-module-thumb'})
     headlines = soup.find_all('article')
     print(headlines)
 
@@ -193,7 +190,7 @@ def northernbeachesadvocate():
     for headline in headlines:
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         url_text = headline.find('a')['title']
-        title="{} :: {}".format(url_text,"Manly Observer")
+        title="{} :: {}".format(url_text, url_name)
         try:
             url = headline.find('a')['href']
             #print(title, url)
