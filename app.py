@@ -1,5 +1,6 @@
 import requests
 import urllib.request
+import requests
 
 import pandas as pd
 import os
@@ -11,7 +12,11 @@ import yaml
 import praw
 from random import randint
 
-# Websites to add :
+youtube_users = ["DeanCarrot"]
+
+youtube_channels = [
+    ["MANLY SURF TV", "UCgVIit-PEQ2q92nhw9nsSTw"]
+]
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--local',  help='Pull html from local file', action='store_true')
@@ -29,6 +34,45 @@ def initialise_csv():
     if not csv_exists:
         new_csv = pd.DataFrame(columns=["timestamp","title", "url","posted"])
         new_csv.to_csv(csv_file, index=False)
+
+
+from datetime import datetime
+
+def get_source(url):
+    return BeautifulSoup(requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, verify=False).text, 'html.parser')
+
+def get_youtube():
+    csv = pd.read_csv(csv_file)
+    df = pd.DataFrame(columns=["timestamp","title", "url","posted"])
+
+    for youtube_user in youtube_users:
+        soup = get_source(f'https://www.youtube.com/feeds/videos.xml?user={youtube_user}')
+        for entry in soup.find_all("entry"):
+            title = entry.find("title").text  
+            full_title = f"{title} :: {youtube_user}"
+            timestamp = datetime.strptime(entry.find("published").text, '%Y-%m-%dT%H:%M:%S+00:00')
+            timestamp = timestamp.strftime('%m-%d-%Y %H:%M:%S')
+            yd = [{'timestamp': timestamp, 'title': full_title, 'url':entry.find("link")["href"], 'posted': "False"}]
+            ydf = pd.DataFrame(yd)
+            if "manly" in title.lower():
+                df = pd.concat([df, ydf])
+
+    for youtube_channel in youtube_channels:
+        soup = get_source(f'https://www.youtube.com/feeds/videos.xml?channel_id={youtube_channel[1]}')
+        for entry in soup.find_all("entry"):
+            title = entry.find("title").text  
+            full_title = f"{title} :: {youtube_channel[0]}"
+            timestamp = datetime.strptime(entry.find("published").text, '%Y-%m-%dT%H:%M:%S+00:00')
+            timestamp = timestamp.strftime('%m-%d-%Y %H:%M:%S')
+            yd = [{'timestamp': timestamp, 'title': full_title, 'url':entry.find("link")["href"], 'posted': "False"}]
+            ydf = pd.DataFrame(yd)
+            if "manly" in title.lower():
+                df = pd.concat([df, ydf])
+
+    if not df.empty:
+        csv = csv.append(df, ignore_index=True)
+        csv.drop_duplicates(['url'],inplace=True)
+        csv.to_csv(csv_file, index=False)
 
 def dailymail():
     if args.local:
@@ -380,6 +424,7 @@ def publish_to_reddit():
 
 def main():
     initialise_csv()
+    get_youtube()
     dailymail()
     ninenews()
     manlyaustralia()
