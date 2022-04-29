@@ -40,7 +40,7 @@ jobs:
 
       - name: Git Push Updates
         run: |
-          git diff-index --quiet HEAD || (
+          [[ -z $(git status -s) ]] || (
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add -A
