@@ -23,24 +23,62 @@ pd.set_option('display.max_columns', None)
 pd.set_option('display.expand_frame_repr', False)
 pd.set_option('max_colwidth', -1)
 
-# def print_full(x):
-#     pd.set_option('display.max_rows', len(x))
-#     pd.set_option('display.max_columns', None)
-#     pd.set_option('display.width', 2000)
-#     pd.set_option('display.float_format', '{:20,.2f}'.format)
-#     pd.set_option('display.max_colwidth', -1)
-#     print(x)
-#     pd.reset_option('display.max_rows')
-#     pd.reset_option('display.max_columns')
-#     pd.reset_option('display.width')
-#     pd.reset_option('display.float_format')
-#     pd.reset_option('display.max_colwidth')
 
 def initialise_csv():
     csv_exists = os.path.isfile(csv_file)
     if not csv_exists:
         new_csv = pd.DataFrame(columns=["timestamp","title", "url","posted"])
         new_csv.to_csv(csv_file, index=False)
+
+def dailymail():
+    if args.local:
+        soup = BeautifulSoup(open("index.html"), "html.parser")
+    else:
+        # Get Remote
+        remote_url = 'https://www.dailymail.co.uk/home/search.html?offset=0&size=50&sel=site&searchPhrase=manly+beach&sort=recent&channel=news&type=article&days=lastweek'
+        page = urllib.request.urlopen(remote_url)
+        soup = BeautifulSoup(page, 'html.parser')
+
+    rows = []
+
+    headlines = soup.find_all('div', {'class' : 'sch-res-content'})
+
+    csv = pd.read_csv(csv_file)
+
+    df = pd.DataFrame(columns=["timestamp","title", "url","posted"])
+
+    for headline in headlines:
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        title=headline.find('h3', {'class' : 'sch-res-title'})
+        body=headline.find('p', {'class' : 'sch-res-preview'}).text
+        match_text = "Manly".lower()
+        title_lower = title.text.lower()
+        body_lower = body.lower()
+        if match_text in title_lower or match_text in body_lower:
+            try:
+                
+                url = title.find('a')['href']
+                url = f"https://www.dailymail.co.uk{url}"
+                title = title.text
+                print(title)
+                print(url)
+                print(body)
+                print("______________")
+
+                df = df.append({
+                    "timestamp": timestamp,
+                    "title": title,
+                    "url": url,
+                    "posted": "False",
+                }, ignore_index=True)
+            except Exception as e:
+                print(e)
+
+    print("==================================")
+    csv = csv.append(df, ignore_index=True)
+    csv.drop_duplicates(['url'],inplace=True)
+    csv.to_csv(csv_file, index=False)
+
 
 def ninenews():
     if args.local:
@@ -329,7 +367,7 @@ def publish_to_reddit():
             print("URL : {}".format(url))
             wait_for=randint(600, 900)
             try:
-                reddit.subreddit(sub_reddit).submit(title, url=url)
+                reddit.subreddit(sub_reddit).submit(title[:300], url=url)
                 print("POSTED TO REDDIT!")
                 csv.at[index,'posted'] = "True"
                 csv.to_csv(csv_file, index=False)
@@ -342,6 +380,7 @@ def publish_to_reddit():
 
 def main():
     initialise_csv()
+    dailymail()
     ninenews()
     manlyaustralia()
     sproutdaily()
