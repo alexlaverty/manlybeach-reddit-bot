@@ -74,6 +74,9 @@ def get_youtube():
         csv.drop_duplicates(['url'],inplace=True)
         csv.to_csv(csv_file, index=False)
 
+
+
+
 def dailymail():
     if args.local:
         soup = BeautifulSoup(open("index.html"), "html.parser")
@@ -135,7 +138,7 @@ def ninenews():
 
     rows = []
 
-    headlines = soup.find_all('h1', {'class' : 'story__headline'})
+    headlines = soup.find_all('h3', {'class' : 'story__headline'})
 
     csv = pd.read_csv(csv_file)
 
