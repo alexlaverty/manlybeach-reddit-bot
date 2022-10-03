@@ -434,7 +434,7 @@ def main():
     sproutdaily()
     pacificjules()
     manlyobserver()
-    northernbeachesadvocate()
+    #northernbeachesadvocate()
     publish_to_reddit()
 
 if __name__ == '__main__':
