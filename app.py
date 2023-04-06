@@ -26,7 +26,7 @@ csv_file = "data.csv"
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.expand_frame_repr', False)
-pd.set_option('max_colwidth', -1)
+#pd.set_option('max_colwidth', -1)
 
 
 def initialise_csv():
@@ -70,7 +70,7 @@ def get_youtube():
                 df = pd.concat([df, ydf])
 
     if not df.empty:
-        csv = csv.append(df, ignore_index=True)
+        csv = pd.concat([csv, df])
         csv.drop_duplicates(['url'],inplace=True)
         csv.to_csv(csv_file, index=False)
 
@@ -111,18 +111,18 @@ def dailymail():
                 print(url)
                 print(body)
                 print("______________")
-
-                df = df.append({
+                df1 = pd.DataFrame({
                     "timestamp": timestamp,
                     "title": title,
                     "url": url,
                     "posted": "False",
-                }, ignore_index=True)
+                })
+                df = pd.concat([df, df1])
             except Exception as e:
                 print(e)
 
     print("==================================")
-    csv = csv.append(df, ignore_index=True)
+    csv = pd.concat([csv, df])
     csv.drop_duplicates(['url'],inplace=True)
     csv.to_csv(csv_file, index=False)
 
@@ -150,19 +150,19 @@ def ninenews():
         try:
 
             url = headline.find('a')['href']
-            #print(title, url)
-            df = df.append({
-                 "timestamp": timestamp,
-                 "title": title,
-                 "url": url,
-                 "posted": "False",
-            }, ignore_index=True)
+            df1 = pd.DataFrame({
+                "timestamp": timestamp,
+                "title": title,
+                "url": url,
+                "posted": "False",
+            }, index=[0])
+            df = pd.concat([df, df1])
         except TypeError:
             pass
     print(remote_url)
     print(df)
     print("==================================")
-    csv = csv.append(df, ignore_index=True)
+    csv = pd.concat([csv, df])
     csv.drop_duplicates(['url'],inplace=True)
     csv.to_csv(csv_file, index=False)
 
@@ -188,13 +188,13 @@ def manlyaustralia():
         title="{} :: {}".format(headline.find('a').contents[0],"Manly Australia")
         try:
             url = headline.find('a')['href']
-            #print(title, url)
-            df = df.append({
-                 "timestamp": timestamp,
-                 "title": title,
-                 "url": url,
-                 "posted": "False",
-            }, ignore_index=True)
+            df1 = pd.DataFrame({
+                "timestamp": timestamp,
+                "title": title,
+                "url": url,
+                "posted": "False",
+            }, index=[0])
+            df = pd.concat([df, df1])
         except TypeError:
             pass
 
@@ -202,7 +202,7 @@ def manlyaustralia():
     print(df)
     print("==================================")
 
-    csv = csv.append(df, ignore_index=True)
+    csv = pd.concat([csv, df])
     csv.drop_duplicates(['url'],inplace=True)
     csv.to_csv(csv_file, index=False)
 
@@ -231,13 +231,13 @@ def manlyobserver():
         title="{} :: {}".format(url_text,"Manly Observer")
         try:
             url = headline.find('a')['href']
-            #print(title, url)
-            df = df.append({
-                 "timestamp": timestamp,
-                 "title": title,
-                 "url": url,
-                 "posted": "False",
-            }, ignore_index=True)
+            df1 = pd.DataFrame({
+                "timestamp": timestamp,
+                "title": title,
+                "url": url,
+                "posted": "False",
+            }, index=[0])
+            df = pd.concat([df, df1])
         except TypeError:
             pass
 
@@ -245,7 +245,7 @@ def manlyobserver():
     print(df)
     print("==================================")
 
-    csv = csv.append(df, ignore_index=True)
+    csv = pd.concat([csv, df])
     csv.drop_duplicates(['url'],inplace=True)
     csv.to_csv(csv_file, index=False)
 
@@ -278,13 +278,13 @@ def northernbeachesadvocate():
         title="{} :: {}".format(url_text, url_name)
         try:
             url = headline.find('a')['href']
-            #print(title, url)
-            df = df.append({
-                 "timestamp": timestamp,
-                 "title": title,
-                 "url": url,
-                 "posted": "False",
-            }, ignore_index=True)
+            df1 = pd.DataFrame({
+                "timestamp": timestamp,
+                "title": title,
+                "url": url,
+                "posted": "False",
+            }, index=[0])
+            df = pd.concat([df, df1])
         except TypeError:
             pass
 
@@ -292,7 +292,7 @@ def northernbeachesadvocate():
     print(df)
     print("==================================")
 
-    csv = csv.append(df, ignore_index=True)
+    csv = pd.concat([csv, df])
     csv.drop_duplicates(['url'],inplace=True)
     csv.to_csv(csv_file, index=False)
 
@@ -319,13 +319,13 @@ def sproutdaily():
         title="{} :: {}".format(headline.find('a').contents[0], "Sprout Daily")
         try:
             url = "{}{}".format(remote_url, headline.find('a')['href'])
-            #print(title, url)
-            df = df.append({
-                 "timestamp": timestamp,
-                 "title": title,
-                 "url": url,
-                 "posted": "False",
-            }, ignore_index=True)
+            df1 = pd.DataFrame({
+                "timestamp": timestamp,
+                "title": title,
+                "url": url,
+                "posted": "False",
+            }, index=[0])
+            df = pd.concat([df, df1])
         except TypeError:
             pass
 
@@ -333,7 +333,7 @@ def sproutdaily():
     print(df)
     print("==================================")
 
-    csv = csv.append(df, ignore_index=True)
+    csv = pd.concat([csv, df])
     csv.drop_duplicates(['url'],inplace=True)
     csv.to_csv(csv_file, index=False)
 
@@ -358,13 +358,13 @@ def pacificjules():
         title="{} :: {}".format(li.find('a').contents[0],"Bold and Beautiful")
         try:
             url = li.find('a')['href']
-            #print(title, url)
-            df = df.append({
-                 "timestamp": timestamp,
-                 "title": title,
-                 "url": url,
-                 "posted": "False",
-            }, ignore_index=True)
+            df1 = pd.DataFrame({
+                "timestamp": timestamp,
+                "title": title,
+                "url": url,
+                "posted": "False",
+            }, index=[0])
+            df = pd.concat([df, df1])
         except TypeError:
             pass
 
@@ -372,7 +372,7 @@ def pacificjules():
     print(df)
     print("==================================")
 
-    csv = csv.append(df, ignore_index=True)
+    csv = pd.concat([csv, df])
     csv.drop_duplicates(['url'],inplace=True)
     csv.to_csv(csv_file, index=False)
 
@@ -427,7 +427,7 @@ def publish_to_reddit():
 
 def main():
     initialise_csv()
-    get_youtube()
+    #get_youtube()
     dailymail()
     ninenews()
     manlyaustralia()
@@ -435,7 +435,7 @@ def main():
     pacificjules()
     manlyobserver()
     #northernbeachesadvocate()
-    publish_to_reddit()
+    #publish_to_reddit()
 
 if __name__ == '__main__':
     main()
