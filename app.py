@@ -26,7 +26,7 @@ csv_file = "data.csv"
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.expand_frame_repr', False)
-pd.set_option('max_colwidth', -1)
+#pd.set_option('max_colwidth', -1) # Causing build failure
 
 
 def initialise_csv():
