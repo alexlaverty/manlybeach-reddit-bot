@@ -427,7 +427,7 @@ def publish_to_reddit():
 
 def main():
     initialise_csv()
-    get_youtube()
+    #get_youtube()
     dailymail()
     ninenews()
     manlyaustralia()
