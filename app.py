@@ -435,7 +435,7 @@ def main():
     pacificjules()
     manlyobserver()
     #northernbeachesadvocate()
-    #publish_to_reddit()
+    publish_to_reddit()
 
 if __name__ == '__main__':
     main()
