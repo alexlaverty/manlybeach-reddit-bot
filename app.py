@@ -339,13 +339,17 @@ def sproutdaily():
 
 
 def pacificjules():
+    print("--------- Scraping Pacific Jules ---------")
     remote_url = 'https://pacificjules.typepad.com/'
     if args.local:
         soup = BeautifulSoup(open("index.html"), "html.parser")
     else:
-        page = urllib.request.urlopen(remote_url)
-        soup = BeautifulSoup(page, 'html.parser')
-
+        try:
+            page = urllib.request.urlopen(remote_url)
+            soup = BeautifulSoup(page, 'html.parser')
+        except urllib.error.URLError as e:
+            print("Failed to Scrape Pacific Jules:", e)
+            return  # Exit the function gracefully
     rows = []
 
     headlines = soup.find('div', {'class' : 'module-archives'})
