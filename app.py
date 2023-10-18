@@ -7,14 +7,13 @@ from random import randint
 from time import sleep
 import praw
 
-
 # Your Reddit API credentials
-username      = os.getenv('REDDIT_USERNAME')
-password      = os.getenv('REDDIT_PASSWORD')
-sub_reddit    = os.getenv('REDDIT_SUB_REDDIT')
-client_id     = os.getenv('REDDIT_CLIENT_ID')
+username = os.getenv('REDDIT_USERNAME')
+password = os.getenv('REDDIT_PASSWORD')
+sub_reddit = os.getenv('REDDIT_SUB_REDDIT')
+client_id = os.getenv('REDDIT_CLIENT_ID')
 client_secret = os.getenv('REDDIT_CLIENT_SECRET')
-user_agent    = os.getenv('REDDIT_USER_AGENT')
+user_agent = os.getenv('REDDIT_USER_AGENT')
 
 # Set up the Reddit API
 reddit = praw.Reddit(
@@ -51,6 +50,7 @@ websites = [
 
 csv_file = "data.csv"
 
+
 def scrape_articles(url, title_selector, url_selector):
     try:
         response = requests.get(url)
@@ -58,8 +58,11 @@ def scrape_articles(url, title_selector, url_selector):
 
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        article_titles = [element.text for element in soup.select(title_selector)]
-        article_urls = [urljoin(url, element['href']) for element in soup.select(url_selector)]
+        article_titles = [element.text for element in
+                          soup.select(title_selector)]
+
+        article_urls = [urljoin(url, element['href']) for element in
+                        soup.select(url_selector)]
 
         return list(zip(article_titles, article_urls))
 
@@ -67,10 +70,15 @@ def scrape_articles(url, title_selector, url_selector):
         print(f"Error: {e}")
         return []
 
+
 def write_to_csv(data):
-    df = pd.DataFrame(data, columns=["title", "url"])
-    df["posted"] = False
-    df.to_csv(csv_file, mode="a", header=not os.path.exists(csv_file), index=False)
+    df = pd.DataFrame(data, columns=["Title", "URL"])
+    df["Posted"] = False
+    df.to_csv(csv_file,
+              mode="a",
+              header=not os.path.exists(csv_file),
+              index=False)
+
 
 # Function to post articles to the subreddit
 def post_to_subreddit(title, url):
@@ -78,13 +86,14 @@ def post_to_subreddit(title, url):
     subreddit = reddit.subreddit(subreddit_name)
 
     try:
-        submission = subreddit.submit(title, url=url)
+        subreddit.submit(title, url=url)
         print(f"Posted '{title}' to r/{subreddit_name}.")
         return True
     except Exception as e:
         print(f"Error posting '{title}' to r/{subreddit_name}: {e}")
         return False
-    
+
+
 for website in websites:
     url = website["url"]
     title_selector = website["title_selector"]
@@ -106,13 +115,13 @@ for website in websites:
 df = pd.read_csv(csv_file)
 
 for index, row in df.iterrows():
-    if not row["posted"]:
-        title = row["title"]
-        url = row["url"]
+    if not row["Posted"]:
+        title = row["Title"]
+        url = row["URL"]
         if post_to_subreddit(title, url):
             # Update the "Posted" column to True for the posted articles
-            df.at[index, "posted"] = True
-            wait_for=randint(600, 900)
+            df.at[index, "Posted"] = True
+            wait_for = randint(600, 900)
             sleep(wait_for)
 
 # Save the updated DataFrame with "Posted" values back to the CSV file
