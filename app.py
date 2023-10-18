@@ -6,6 +6,9 @@ from urllib.parse import urljoin
 from random import randint
 from time import sleep
 import praw
+from datetime import datetime
+
+csv_file = "data.csv"
 
 # Your Reddit API credentials
 username = os.getenv('REDDIT_USERNAME')
@@ -48,8 +51,6 @@ websites = [
     },
 ]
 
-csv_file = "data.csv"
-
 
 def scrape_articles(url, title_selector, url_selector):
     try:
@@ -72,12 +73,17 @@ def scrape_articles(url, title_selector, url_selector):
 
 
 def write_to_csv(data):
-    df = pd.DataFrame(data, columns=["Title", "URL"])
-    df["Posted"] = False
+    current_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    df = pd.DataFrame(data, columns=["title", "url"])
+    df.insert(0, "timestamp", current_date)
+    df["posted"] = False
     df.to_csv(csv_file,
               mode="a",
               header=not os.path.exists(csv_file),
               index=False)
+
+
+
 
 
 # Function to post articles to the subreddit
@@ -115,13 +121,14 @@ for website in websites:
 df = pd.read_csv(csv_file)
 
 for index, row in df.iterrows():
-    if not row["Posted"]:
-        title = row["Title"]
-        url = row["URL"]
+    if not row["posted"]:
+        title = row["title"]
+        url = row["url"]
         if post_to_subreddit(title, url):
             # Update the "Posted" column to True for the posted articles
-            df.at[index, "Posted"] = True
+            df.at[index, "posted"] = True
             wait_for = randint(600, 900)
+            print(f"Sleeping for {str(wait_for)} seconds...")
             sleep(wait_for)
 
 # Save the updated DataFrame with "Posted" values back to the CSV file
