@@ -10,6 +10,9 @@ from datetime import datetime
 
 csv_file = "data.csv"
 
+# Load existing data from the CSV file
+existing_data = pd.read_csv(csv_file)
+
 # Your Reddit API credentials
 username = os.getenv('REDDIT_USERNAME')
 password = os.getenv('REDDIT_PASSWORD')
@@ -83,14 +86,10 @@ def write_to_csv(data):
               index=False)
 
 
-
-
-
 # Function to post articles to the subreddit
 def post_to_subreddit(title, url):
     subreddit_name = "manlybeach"
     subreddit = reddit.subreddit(subreddit_name)
-
     try:
         subreddit.submit(title, url=url)
         print(f"Posted '{title}' to r/{subreddit_name}.")
@@ -107,14 +106,19 @@ for website in websites:
 
     article_data = scrape_articles(url, title_selector, url_selector)
 
-    print(f"Scraping from {url}:")
-    for title, url in article_data:
-        print("Title:", title)
-        print("URL:", url)
-        print("======================================")
+    print(f"Scraping from {url}")
+    new_data = []
 
-    # Write the scraped data to the CSV file
-    write_to_csv(article_data)
+    for title, url in article_data:
+        # Check if the URL already exists in the CSV
+        if url not in existing_data['url'].values:
+            new_data.append((title, url))
+            print("Title:", title)
+            print("URL:", url)
+            print("======================================")
+
+    # Write the new scraped data to the CSV file
+    write_to_csv(new_data)
 
 
 # Read the CSV file and filter rows where "Posted" is False
