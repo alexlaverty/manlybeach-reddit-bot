@@ -14,5 +14,4 @@ six
 soupsieve
 update-checker
 urllib3
-tweepy
 websocket-client

@@ -1,14 +1,21 @@
 import os
 import csv
-import tweepy
+import re
+import json
+import requests
 import praw
 
 TWEET_CSV = "shark_tweets.csv"
 SUBREDDIT_NAME = "aleximinal"
 SHARKSMART_USERNAME = "NSWSharkSmart"
 SEARCH_TERM = "manly beach"
+SYNDICATION_URL = (
+    "https://syndication.twitter.com/srv/timeline-profile/screen-name/"
+    + SHARKSMART_USERNAME
+)
 
 # Post SharkSmart Tweets mentioning "manly beach" to Reddit
+
 
 def get_posted_tweet_ids():
     """Read previously posted tweet IDs from the CSV file."""
@@ -33,14 +40,6 @@ def save_tweet_id(tweet_id):
         writer.writerow([tweet_id])
 
 
-def get_twitter_client():
-    """Create and return a Tweepy client using a bearer token."""
-    bearer_token = os.getenv("TWITTER_BEARER_TOKEN")
-    if not bearer_token:
-        raise ValueError("TWITTER_BEARER_TOKEN environment variable is not set")
-    return tweepy.Client(bearer_token=bearer_token)
-
-
 def get_reddit_client():
     """Create and return a PRAW Reddit instance."""
     return praw.Reddit(
@@ -52,29 +51,33 @@ def get_reddit_client():
     )
 
 
-def fetch_shark_tweets(client):
-    """Fetch recent tweets from @NSWSharkSmart that mention 'manly beach'."""
-    # Look up the user ID for @NSWSharkSmart
-    user = client.get_user(username=SHARKSMART_USERNAME)
-    if not user.data:
-        print(f"Could not find user @{SHARKSMART_USERNAME}")
-        return []
+def fetch_shark_tweets():
+    """Fetch recent tweets from @NSWSharkSmart via the syndication endpoint."""
+    response = requests.get(SYNDICATION_URL)
+    response.raise_for_status()
 
-    user_id = user.data.id
-
-    # Fetch recent tweets from the user's timeline
-    tweets = client.get_users_tweets(
-        user_id,
-        max_results=100,
-        tweet_fields=["id", "text", "created_at"],
+    match = re.search(
+        r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>',
+        response.text,
+        re.DOTALL,
     )
-
-    if not tweets.data:
-        print(f"No recent tweets found for @{SHARKSMART_USERNAME}")
+    if not match:
+        print("Could not find tweet data in syndication response")
         return []
+
+    data = json.loads(match.group(1))
+    entries = data["props"]["pageProps"]["timeline"]["entries"]
+
+    tweets = []
+    for entry in entries:
+        if entry.get("type") == "tweet":
+            tweet = entry["content"]["tweet"]
+            tweets.append(tweet)
+
+    print(f"Fetched {len(tweets)} tweet(s) from @{SHARKSMART_USERNAME}")
 
     # Filter for tweets that mention "manly beach" (case insensitive)
-    matching = [t for t in tweets.data if SEARCH_TERM in t.text.lower()]
+    matching = [t for t in tweets if SEARCH_TERM in t["full_text"].lower()]
     print(f"Found {len(matching)} tweet(s) mentioning '{SEARCH_TERM}'")
     return matching
 
@@ -82,21 +85,22 @@ def fetch_shark_tweets(client):
 def post_tweet_to_reddit(reddit, tweet):
     """Post a tweet as a self-text post to the subreddit."""
     subreddit = reddit.subreddit(SUBREDDIT_NAME)
-    tweet_url = f"https://x.com/{SHARKSMART_USERNAME}/status/{tweet.id}"
+    tweet_url = f"https://x.com/{SHARKSMART_USERNAME}/status/{tweet['id_str']}"
 
     # Use the first ~80 chars of the tweet as the title
-    title = tweet.text[:80]
-    if len(tweet.text) > 80:
+    text = tweet["full_text"]
+    title = text[:80]
+    if len(text) > 80:
         title = title.rsplit(" ", 1)[0] + "..."
 
-    body = f"{tweet.text}\n\n[Source]({tweet_url})"
+    body = f"{text}\n\n[Source]({tweet_url})"
 
     try:
         subreddit.submit(title, selftext=body)
-        print(f"Posted tweet {tweet.id} to r/{SUBREDDIT_NAME}")
+        print(f"Posted tweet {tweet['id_str']} to r/{SUBREDDIT_NAME}")
         return True
     except Exception as e:
-        print(f"Error posting tweet {tweet.id} to r/{SUBREDDIT_NAME}: {e}")
+        print(f"Error posting tweet {tweet['id_str']} to r/{SUBREDDIT_NAME}: {e}")
         return False
 
 
@@ -104,14 +108,12 @@ def main():
     posted_ids = get_posted_tweet_ids()
     print(f"Loaded {len(posted_ids)} previously posted tweet ID(s)")
 
-    twitter = get_twitter_client()
+    tweets = fetch_shark_tweets()
     reddit = get_reddit_client()
-
-    tweets = fetch_shark_tweets(twitter)
 
     new_count = 0
     for tweet in tweets:
-        tweet_id = str(tweet.id)
+        tweet_id = tweet["id_str"]
         if tweet_id in posted_ids:
             print(f"Skipping already posted tweet {tweet_id}")
             continue
