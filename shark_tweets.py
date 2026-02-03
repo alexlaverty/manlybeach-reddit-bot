@@ -8,6 +8,7 @@ SUBREDDIT_NAME = "aleximinal"
 SHARKSMART_USERNAME = "NSWSharkSmart"
 SEARCH_TERM = "manly beach"
 
+# Post SharkSmart Tweets mentioning "manly beach" to Reddit
 
 def get_posted_tweet_ids():
     """Read previously posted tweet IDs from the CSV file."""
