@@ -8,7 +8,7 @@ POSTED_CSV = "shark_tweets.csv"
 SUBREDDIT_NAME = "aleximinal"
 DORSAL_API_URL = "https://www.dorsalwatch.com/api/public/report/list"
 DORSAL_PUBLIC_KEY = "ab61cd9427bea80f22e641c04c312195"
-SEARCH_LOCATION = "manly beach"
+SEARCH_LOCATION = "manly"
 
 # Post Dorsal shark alerts for Manly Beach to Reddit
 
