@@ -6,7 +6,7 @@ import requests
 import praw
 
 POSTED_CSV = "shark_tweets.csv"
-SUBREDDIT_NAME = "aleximinal"
+SUBREDDIT_NAME = "manlybeach"
 DORSAL_API_URL = "https://www.dorsalwatch.com/api/public/report/list"
 DORSAL_PUBLIC_KEY = "ab61cd9427bea80f22e641c04c312195"
 SEARCH_LOCATION = "manly"
