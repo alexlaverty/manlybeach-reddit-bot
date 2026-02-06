@@ -1,6 +1,7 @@
 import os
 import csv
 import json
+import argparse
 import requests
 import praw
 
@@ -134,11 +135,35 @@ def post_report_to_reddit(reddit, report):
         return False
 
 
-def main():
+def main(seed_only=False):
+    """
+    Main entry point.
+
+    Args:
+        seed_only: If True, fetch reports and save IDs without posting to Reddit.
+                   Use this to seed the CSV with existing report IDs before going live.
+    """
     posted_ids = get_posted_ids()
     print(f"Loaded {len(posted_ids)} previously posted report ID(s)")
 
     reports = fetch_shark_reports()
+
+    if seed_only:
+        new_count = 0
+        for report in reports:
+            report_id = str(report["id"])
+            if report_id in posted_ids:
+                print(f"Skipping already saved report {report_id}")
+                continue
+
+            save_posted_id(report_id)
+            posted_ids.add(report_id)
+            new_count += 1
+            print(f"Saved report {report_id} (seed mode - not posting to Reddit)")
+
+        print(f"Done. Seeded {new_count} new report ID(s) to {POSTED_CSV}")
+        return
+
     reddit = get_reddit_client()
 
     new_count = 0
@@ -157,4 +182,14 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(
+        description="Post Dorsal shark alerts for Manly Beach to Reddit"
+    )
+    parser.add_argument(
+        "--seed",
+        action="store_true",
+        help="Seed mode: fetch reports and save IDs without posting to Reddit. "
+             "Run this once to capture existing report IDs before going live.",
+    )
+    args = parser.parse_args()
+    main(seed_only=args.seed)
